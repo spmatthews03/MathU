@@ -1,15 +1,25 @@
 import React, { Component } from 'react';
-import { AppRegistry, TextInput, View, TouchableHighlight, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { AppRegistry, Text, TextInput, View, TouchableHighlight, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { BoxShadow } from 'react-native-shadow';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {Button} from 'react-native-elements';
+import { isTemplateElement } from '@babel/types';
 
 export default class ProblemScreen extends Component {
   constructor(props) {
     super(props);
     this.state = { 
         text: 'Enter a problem',
-        history: []
+        history: [
+            {
+                question: "whats the problem",
+                img: "solved"
+            },
+            {
+                question: "here is the second one",
+                img: "solved again"
+            }
+        ]
     };
   }
   
@@ -81,6 +91,16 @@ export default class ProblemScreen extends Component {
                 </View>
             </View>
             <View style={{flex:3, backgroundColor: 'red'}}>
+                    {
+                        this.state.history.map((item, index) => (
+                            <TouchableOpacity
+                                key = {item.question}>
+                                <Text style={styles.text}>
+                                    {item.img}
+                                </Text>
+                            </TouchableOpacity>
+                        ))
+                    }
             </View>
             <View style={styles.bottomContainer}>
                 <View style={{
@@ -125,6 +145,9 @@ const styles = StyleSheet.create({
         flex:1,
         justifyContent:'flex-end',
         marginBottom: 15
+    },
+    text: {
+        color: '#4f603c'
     },
     input: {
        margin: 15,
