@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
-import { AppRegistry, Text, TextInput, View, TouchableHighlight, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { AppRegistry, Text, TextInput, View, ScrollView, TouchableHighlight, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { BoxShadow } from 'react-native-shadow';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import {Button} from 'react-native-elements';
+import {Button, Divider} from 'react-native-elements';
+import {Card} from 'react-native-shadow-cards';
 import { isTemplateElement } from '@babel/types';
 
 export default class ProblemScreen extends Component {
@@ -10,21 +11,19 @@ export default class ProblemScreen extends Component {
     super(props);
     this.state = { 
         text: 'Enter a problem',
-        history: [
+        cards: [
             {
-                question: "whats the problem",
-                img: "solved"
-            },
-            {
-                question: "here is the second one",
-                img: "solved again"
+                question: "Solve 2x=2",
+                img: "http://www4d.wolframalpha.com/Calculate/MSP/MSP397914fhd8eecb8fb3d800000hda459c4c6i8iig?MSPStoreType=image/gif&s=30",
+                width:20,
+                height:20,
             }
         ]
     };
   }
   
   solveButtonPress = () =>{
-      var uri = "http://192.168.1.223:5000/ask_mathu?msg=" + encodeURIComponent(this.state.text);
+      var uri = "http://192.168.1.223:5000/solve?msg=" + encodeURIComponent(this.state.text);
       fetch(uri, {
           method: "GET",
       })
@@ -32,10 +31,23 @@ export default class ProblemScreen extends Component {
           return response.json();
       })
       .then((data) =>{
-          this.setState({ history: data})
-      })
-      .then(function(){
-          console.log(this.state.text)
+        var card;
+
+        Image.getSize(data, (width, height ) => {
+            this.state.cards.push({question: this.state.text, img: data, width: width, height: height});
+
+            this.setState({
+                text: 'Enter a problem',
+                cards: this.state.cards
+            });
+        });
+
+        // this.state.cards.push(card);
+
+        // this.setState({
+        //     text: 'Entera problem',
+        //     cards: this.state.cards
+        // });
       })
   }
 
@@ -45,21 +57,25 @@ export default class ProblemScreen extends Component {
 
     return (
         <View style = {{flex:1}}>
-            <View style = {{flex:1}}>
-                <TextInput
-                    style={{height:40, borderColor: 'gray', borderWidth: 1, textAlign:'center'}}
-                    onChangeText={(text) => this.setState({text})}
-                    value={this.state.text}
-                />
+            <View style={{height:100, paddingBottom:10}}>
+                <View style={{flexDirection:'row', paddingLeft:10, paddingRight: 10}}>
+                    <TextInput
+                        style={styles.input}
+                        onChangeText={(text) => this.setState({text})}
+                        value={this.state.text}
+                    />
+                </View>  
                 <View style={{
                     flex:1,
                     flexDirection:'row',
                     justifyContent:'space-between',
                     alignItems: 'stretch',
-                    height:40
+                    height:40,
+                    paddingLeft:13,
+                    paddingRight: 13
                     }}>
                     <View style={{
-                        flex:3,
+                        flex:6,
                         padding:2 ,                  
                         height: 20 
                     }}>
@@ -68,16 +84,6 @@ export default class ProblemScreen extends Component {
                             type="outline"
                             onPress={this.solveButtonPress}
                         />  
-                    </View>
-                    <View style={{
-                        flex:3,
-                        padding:2,
-                        height: 20 
-                    }}>
-                        <Button 
-                            title="Simplify"
-                            type="outline"
-                        />
                     </View>
                     <View style={{
                         flex:1,
@@ -90,25 +96,35 @@ export default class ProblemScreen extends Component {
                     </View>
                 </View>
             </View>
-            <View style={{flex:3, backgroundColor: 'red'}}>
+            <View style={{height:500}}>
+                <ScrollView contentContainerStyle={styles.contentContainer}>
                     {
-                        this.state.history.map((item, index) => (
-                            <TouchableOpacity
+                        this.state.cards.map((item, index) => (
+                            <Card style={{padding:5, marginBottom: 5, elevation: 3}}
                                 key = {item.question}>
-                                <Text style={styles.text}>
-                                    {item.img}
-                                </Text>
-                            </TouchableOpacity>
+                                <View>
+                                    <Text style={styles.cardHeader}>
+                                        {item.question}
+                                    </Text>
+                                    <Divider style={{ backgroundColor:'blue'}} />
+                                    <View style={{height: item.height, justifyContent:'center', alignItems:'center'}}>
+                                        <Image 
+                                            source={{uri: item.img}}
+                                            style={{flex:1, width: item.width, height: item.height, resizeMode: 'contain'}}/>
+                                    </View>
+                                </View>
+                            </Card>
                         ))
                     }
+                </ScrollView>
             </View>
-            <View style={styles.bottomContainer}>
+            {/* <View style={styles.bottomContainer}>
                 <View style={{
                     flex:1,
                     // alignItems:'stretch',
                     width:'100%',
                     position:'absolute',
-                    bottom:0,
+                    bottom:0,TouchableOpacity,
                     padding:2
                     }}>
                     <View style={{padding:1}}>
@@ -130,13 +146,18 @@ export default class ProblemScreen extends Component {
                         />               
                     </View>
                 </View>
-            </View>    
+            </View>     */}
         </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
+    contentContainer: {
+        justifyContent:'center',
+        alignContent: 'center',
+        alignItems:'center'
+    },
     container: {
         flex:1,
         paddingTop: 2
@@ -149,11 +170,21 @@ const styles = StyleSheet.create({
     text: {
         color: '#4f603c'
     },
+    solveButton:{
+        borderWidth:1,
+        borderRadius:8,
+        borderColor:'grey',
+        // justifyContent:'center',
+        alignItems:'center'
+    },
     input: {
-       margin: 15,
-       height: 40,
-       borderColor: '#7a42f4',
-       borderWidth: 1
+        flex:1,
+        paddingLeft:20,
+        margin:5,
+        textAlign:'center',
+        height: 40,
+        borderWidth: 1,
+        borderRadius:5
     },
     submitButton: {
         flex:1,
@@ -167,11 +198,15 @@ const styles = StyleSheet.create({
         height:40,
     },
     mathuButton:{
-        borderWidth:1,
-        borderRadius:8,
-        borderColor:'grey',
+        // borderWidth:1,
+        // borderRadius:2,
+        // borderColor:'grey',
         // justifyContent:'center',
         alignItems:'center'
+    },
+    cardHeader:{
+        fontWeight: 'bold',
+        fontSize:18
     }
  })
 

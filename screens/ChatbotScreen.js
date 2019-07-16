@@ -5,11 +5,8 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import {Button} from 'react-native-elements';
 import KeyboardSpacer from 'react-native-keyboard-spacer';
 import AutogrowInput from 'react-native-autogrow-input';
+import { stringify } from 'querystring';
 
-//used to make random-sized messages
-function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
 
 // The actual chat view itself- a ScrollView of BubbleMessages, with an InputBar at the bottom, which moves with the keyboard
 export default class ChatbotScreen extends Component {
@@ -17,28 +14,24 @@ export default class ChatbotScreen extends Component {
     constructor(props) {
       super(props);
   
-      var loremIpsum = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras ac orci augue. Sed fringilla nec magna id hendrerit. Proin posuere, tortor ut dignissim consequat, ante nibh ultrices tellus, in facilisis nunc nibh rutrum nibh.';
+      var welcomeBack = "Hi, Welcome Back! I'm MathU. Enter your problem and we can work through it!"
   
       //create a set number of texts with random lengths. Also randomly put them on the right (user) or left (other person).
-      var numberOfMessages = 20;
+      var numberOfMessages = 1;
   
       var messages = [];
-  
-      for(var i = 0; i < numberOfMessages; i++) {
-        var messageLength = getRandomInt(10, 120);
-  
-        var owner = getRandomInt(1, 2) === 1 ? 'Sean' : 'MathU';
-  
-        message = loremIpsum.substring(0, messageLength);
-  
-        messages.push({
-          owner: owner,
-          text: message
-        })
-      }
+
+      var steps = [];
+
+      messages.push({
+        owner: 'MathU',
+        text: welcomeBack
+      })
   
       this.state = {
         messages: messages,
+        currProbSteps: [],
+        currStep: 1,
         inputBarText: ''
       }
     }
@@ -84,13 +77,51 @@ export default class ChatbotScreen extends Component {
       }.bind(this))
     }
   
+    // _askQuestion() {
+    //   var uri = "http://192.168.0.43:5000/ask_mathu?msg=" + encodeURIComponent(this.state.inputBarText);
+    //   fetch(uri, {
+    //     method: "GET",
+    //   })
+    //   .then(function(response){
+    //       return response.json();
+    //   })
+    //   .then((data) =>{
+    //     this.state.messages.push({ owner: "MathU", text: "Got it. There are " + (data.length-2) + " steps. This is the first...\n" + data[this.state.currStep]});
+
+    //     this.setState({
+    //       messages: this.state.messages,
+    //       currStep: this.state.currStep + 1,
+    //       currProbSteps: data,
+    //       inputBarText: ''
+    //     });
+    //   })
+    // }
+
+
     _sendMessage() {
       this.state.messages.push({owner: "Sean", text: this.state.inputBarText});
   
-      this.setState({
-        messages: this.state.messages,
-        inputBarText: ''
-      });
+      var uri = "http://192.168.1.223:5000/ask_mathu?msg=" + encodeURIComponent(this.state.inputBarText);
+      fetch(uri, {
+          method: "GET",
+      })
+      .then(function(response){
+
+          return response.json();
+      })
+      .then((data) =>{
+        this.state.messages.push({ owner: "MathU", text: "Got it. There are " + (data.length-2) + " steps. This is the first...\n" + data[this.state.currStep]});
+
+        this.setState({
+          messages: this.state.messages,
+          currStep: this.state.currStep + 1,
+          currProbSteps: data,
+          inputBarText: ''
+        });
+      })
+      .then(function(){
+          console.log(this.state.text)
+      })
     }
   
     _onChangeInputBarText(text) {
@@ -98,6 +129,18 @@ export default class ChatbotScreen extends Component {
         inputBarText: text
       });
     }
+
+
+    nextStepPress = () => {
+      this.state.messages.push({owner: "MathU", text: this.state.currProbSteps[this.state.currStep]})
+      this.setState({
+        messages: this.state.messages,
+        currStep: this.state.currStep + 1,
+        inputBarText: ''
+      });
+
+    }
+
   
     //This event fires way too often.
     //We need to move the last message up if the input bar expands due to the user's new message exceeding the height of the box.
@@ -124,6 +167,11 @@ export default class ChatbotScreen extends Component {
                     <ScrollView ref={(ref) => { this.scrollView = ref }} style={styles.messages}>
                       {messages}
                     </ScrollView>
+                    <Button style={styles.nextButton}
+                      title='Next Step'
+                      type="outline"
+                      onPress={this.nextStepPress}
+                      />
                     <InputBar onSendPressed={() => this._sendMessage()} 
                               onSizeChange={() => this._onInputSizeChange()}
                               onChangeText={(text) => this._onChangeInputBarText(text)}
@@ -266,7 +314,15 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         backgroundColor: '#66db30'
     },
-
+    nextButton: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingLeft: 15,
+      marginLeft: 5,
+      paddingRight: 15,
+      borderRadius: 5,
+      backgroundColor: 'white'
+  },
     //MessageBubble
 
     messageBubble: {
@@ -285,7 +341,8 @@ const styles = StyleSheet.create({
     },
 
     messageBubbleTextLeft: {
-        color: 'black'
+        color: 'black',
+        fontSize: 16
     },
 
     messageBubbleRight: {
@@ -293,7 +350,8 @@ const styles = StyleSheet.create({
     },
 
     messageBubbleTextRight: {
-        color: 'white'
+        color: 'white',
+        fontSize: 16
     },
 })
    
