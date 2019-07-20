@@ -7,7 +7,7 @@ const tabBarIcon = name => ({ tintColor }) => (
     style={{ backgroundColor: 'transparent' }}
     name={name}
     color={{tintColor: 'black'}}
-    size={24}
+    size={18}
   />
 );
 

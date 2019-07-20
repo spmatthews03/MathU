@@ -3,10 +3,8 @@ import { AppRegistry, Text, TextInput, View, ScrollView, TouchableHighlight, Sty
 import { BoxShadow } from 'react-native-shadow';
 import {Button, Divider} from 'react-native-elements';
 import ProblemCard from '../components/ProblemCard';
-import { FAB } from 'react-native-paper';
 
-
-export default class ProblemScreen extends Component {
+export default class StepsScreen extends Component {
   constructor(props) {
     super(props);
     this.state = { 
@@ -16,15 +14,7 @@ export default class ProblemScreen extends Component {
                 question: 'Solve 2x=6',
                 img: "https://www5b.wolframalpha.com/Calculate/MSP/MSP34391fcgihgib218aba900004h1dge9231gd943g?MSPStoreType=image/gif&s=52",
                 width: 20,
-                height: 20,
-                steps: ['Step1', 'Step2']                
-            },
-            {
-                question: 'Solve 2x=9',
-                img: "https://www5b.wolframalpha.com/Calculate/MSP/MSP34391fcgihgib218aba900004h1dge9231gd943g?MSPStoreType=image/gif&s=52",
-                width: 20,
-                height: 20,
-                steps: ['Step1', 'Step2']                                
+                height: 20                
             }
         ]
     };
@@ -39,8 +29,8 @@ export default class ProblemScreen extends Component {
           return response.json();
       })
       .then((data) =>{
-        Image.getSize(data.answer, (width, height ) => {
-            this.state.cards.push({question: this.state.text, img: data.answer, width: width, height: height, steps: data.steps});
+        Image.getSize(data, (width, height ) => {
+            this.state.cards.push({question: this.state.text, img: data, width: width, height: height});
 
             this.setState({
                 text: 'Enter a problem',
@@ -118,12 +108,6 @@ export default class ProblemScreen extends Component {
                     keyExtractor={this._keyExtractor}
                     />                                               
             </View>
-            <FAB
-                style={styles.fab}
-                icon='message'
-                label='Chat With MathU'
-                onPress={() => navigate('MathChat')}
-            />
         </View>
     );
   }
@@ -184,12 +168,6 @@ const styles = StyleSheet.create({
     cardHeader:{
         fontWeight: 'bold',
         fontSize:18
-    },
-    fab: {
-        position: 'absolute',
-        margin: 16,
-        right: 0,
-        bottom: 0
-      },
+    }
  })
 

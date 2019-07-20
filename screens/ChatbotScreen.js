@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { ScrollView, Text, TextInput, View, TouchableHighlight, KeyboardAvoidingView, Keyboard, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { BoxShadow } from 'react-native-shadow';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import {Button} from 'react-native-elements';
 import KeyboardSpacer from 'react-native-keyboard-spacer';
 import AutogrowInput from 'react-native-autogrow-input';
