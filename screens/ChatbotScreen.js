@@ -76,52 +76,76 @@ export default class ChatbotScreen extends Component {
       }.bind(this))
     }
   
-    // _askQuestion() {
-    //   var uri = "http://192.168.0.43:5000/ask_mathu?msg=" + encodeURIComponent(this.state.inputBarText);
-    //   fetch(uri, {
-    //     method: "GET",
-    //   })
-    //   .then(function(response){
-    //       return response.json();
-    //   })
-    //   .then((data) =>{
-    //     this.state.messages.push({ owner: "MathU", text: "Got it. There are " + (data.length-2) + " steps. This is the first...\n" + data[this.state.currStep]});
+ // _parse_data(data){
+    //   var steps = [];
+    //   var tmp_step = '';
+    //   var explanation = [];
+    //   var firstTime = true;
 
-    //     this.setState({
-    //       messages: this.state.messages,
-    //       currStep: this.state.currStep + 1,
-    //       currProbSteps: data,
-    //       inputBarText: ''
-    //     });
-    //   })
+    //   for ( var i in data){
+    //     if( i[0] === i[0].toUpperCase() && firstTime != true){
+    //       steps.push({i: explanation});
+    //       explanation.length = 0;
+
+    //     }
+    //     else if ( i[0] === i[0].toUpperCase() && firstTime != true ){
+    //       tmp_step = i;
+    //     }
+    //     else{
+    //       explanation.push(i)
+    //     }
+    //   }
     // }
 
 
     _sendMessage() {
       this.state.messages.push({owner: "Sean", text: this.state.inputBarText});
   
-      var uri = "http://192.168.1.223:5000/ask_mathu?msg=" + encodeURIComponent(this.state.inputBarText);
-      fetch(uri, {
-          method: "GET",
-      })
-      .then(function(response){
+      if(this.state.currProbSteps == 0){
 
-          return response.json();
-      })
-      .then((data) =>{
-        this.state.messages.push({ owner: "MathU", text: "Got it. There are " + (data.length-2) + " steps. This is the first...\n" + data[this.state.currStep]});
+        var uri = "http://192.168.1.223:5000/ask_mathu?msg=" + encodeURIComponent(this.state.inputBarText);
+        fetch(uri, {
+            method: "GET",
+        })
+        .then(function(response){
 
-        this.setState({
-          messages: this.state.messages,
-          currStep: this.state.currStep + 1,
-          currProbSteps: data,
-          inputBarText: ''
+            return response.json();
+        })
+        .then((data) =>{
+          // this.state.messages.push({ owner: "MathU", text: "Got it. There are " + (data.length-2) + " steps. This is the first...\n" + data[this.state.currStep]});
+
+          this.setState({
+            messages: this.state.messages,
+            currStep: this.state.currStep + 1,
+            currProbSteps: data,
+            inputBarText: ''
+          });
+        })
+        .then(function(){
+            console.log(this.state.text)
         });
-      })
-      .then(function(){
-          console.log(this.state.text)
-      })
-    }
+      } else{
+        var uri = "http://192.168.1.223:5000/chatbot_question/";
+        fetch(uri, {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            step: this.state.currStep,
+            userReponse: this.state.inputBarText
+          }),
+        })
+        .then(function(response){
+            return response.json();
+        })
+        .then((data) =>{
+            this.state.messages.push({owner: "MathU", text: data.question});
+        });
+      }
+    };
+    
   
     _onChangeInputBarText(text) {
       this.setState({
@@ -137,14 +161,10 @@ export default class ChatbotScreen extends Component {
         currStep: this.state.currStep + 1,
         inputBarText: ''
       });
-
     }
 
-  
-    //This event fires way too often.
-    //We need to move the last message up if the input bar expands due to the user's new message exceeding the height of the box.
-    //We really only need to do anything when the height of the InputBar changes, but AutogrowInput can't tell us that.
-    //The real solution here is probably a fork of AutogrowInput that can provide this information.
+
+
     _onInputSizeChange() {
       setTimeout(function() {
         this.scrollView.scrollToEnd({animated: false});
@@ -162,22 +182,22 @@ export default class ChatbotScreen extends Component {
       });
   
       return (
-                <View style={styles.outer}>
-                    <ScrollView ref={(ref) => { this.scrollView = ref }} style={styles.messages}>
-                      {messages}
-                    </ScrollView>
-                    <Button style={styles.nextButton}
-                      title='Next Step'
-                      type="outline"
-                      onPress={this.nextStepPress}
-                      />
-                    <InputBar onSendPressed={() => this._sendMessage()} 
-                              onSizeChange={() => this._onInputSizeChange()}
-                              onChangeText={(text) => this._onChangeInputBarText(text)}
-                              text={this.state.inputBarText}/>
-                    <KeyboardSpacer/>             
-                </View>
-              );
+        <View style={styles.outer}>
+            <ScrollView ref={(ref) => { this.scrollView = ref }} style={styles.messages}>
+              {messages}
+            </ScrollView>
+            <Button style={styles.nextButton}
+              title='Next Step'
+              type="outline"
+              onPress={this.nextStepPress}
+              />
+            <InputBar onSendPressed={() => this._sendMessage()} 
+                      onSizeChange={() => this._onInputSizeChange()}
+                      onChangeText={(text) => this._onChangeInputBarText(text)}
+                      text={this.state.inputBarText}/>
+            <KeyboardSpacer/>             
+        </View>
+      );
     }
   }
 

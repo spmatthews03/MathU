@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
-import { AppRegistry, Text, TextInput, View, ScrollView, TouchableHighlight, StyleSheet, FlatList, TouchableOpacity, Image } from 'react-native';
+import { AppRegistry, Text, TextInput, View, StyleSheet, FlatList, Image } from 'react-native';
 import { BoxShadow } from 'react-native-shadow';
-import {Button, Divider} from 'react-native-elements';
+import {Button, Input} from 'react-native-elements';
 import ProblemCard from '../components/ProblemCard';
 import { FAB } from 'react-native-paper';
 
@@ -70,11 +70,15 @@ export default class ProblemScreen extends Component {
     return (
         <View style = {{flex:1}}>
             <View style={{height:100, paddingBottom:10}}>
-                <View style={{flexDirection:'row', paddingLeft:10, paddingRight: 10}}>
-                    <TextInput
+                <View style={{flex:1, flexDirection:'row', paddingLeft:10, paddingRight: 10}}>
+                    {/* <TextInput
                         style={styles.input}
                         onChangeText={(text) => this.setState({text})}
                         value={this.state.text}
+                    /> */}
+                    <Input
+                        placeholder='Enter A Problem'
+                        leftIcon={{ type: 'font-awesome', name: 'calculator'}}
                     />
                 </View>  
                 <View style={{
@@ -93,11 +97,12 @@ export default class ProblemScreen extends Component {
                     }}>
                         <Button 
                             title="Solve"
-                            type="outline"
+                            buttonStyle={{backgroundColor:'turquoise', }}
+                            titleStyle={{color:'black'}}
                             onPress={this.solveButtonPress}
                         />  
                     </View>
-                    <View style={{
+                    {/* <View style={{
                         flex:1,
                         padding:2,
                         height: 20 
@@ -105,7 +110,7 @@ export default class ProblemScreen extends Component {
                         <TouchableOpacity onPress={() => navigate('MathChat')} style={styles.mathuButton}>
                             <Image source={require('../components/images/mathu.png')} style={styles.mathuImage}/>
                         </TouchableOpacity>
-                    </View>
+                    </View> */}
                 </View>
             </View>
             <View style={{flex:1}}>
@@ -151,7 +156,6 @@ const styles = StyleSheet.create({
         borderWidth:1,
         borderRadius:8,
         borderColor:'grey',
-        // justifyContent:'center',
         alignItems:'center'
     },
     input: {
