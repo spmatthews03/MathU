@@ -76,26 +76,31 @@ export default class ChatbotScreen extends Component {
       }.bind(this))
     }
   
- // _parse_data(data){
-    //   var steps = [];
-    //   var tmp_step = '';
-    //   var explanation = [];
-    //   var firstTime = true;
+    _parse_data(data){
+      var steps = [];
+      var tmp_step = '';
+      var explanation = [];
+      var firstTime = true;
 
-    //   for ( var i in data){
-    //     if( i[0] === i[0].toUpperCase() && firstTime != true){
-    //       steps.push({i: explanation});
-    //       explanation.length = 0;
+      for ( var i in data){
+        if( data[i][0] == data[i][0].toUpperCase() && isNaN(data[i][0]) && firstTime != true){
+          console.log(data[i]);
+          console.log("the explanation: " +explanation);
 
-    //     }
-    //     else if ( i[0] === i[0].toUpperCase() && firstTime != true ){
-    //       tmp_step = i;
-    //     }
-    //     else{
-    //       explanation.push(i)
-    //     }
-    //   }
-    // }
+          steps.push({ step : data[i], walkthrough: explanation});
+          explanation.length = 0;
+          console.log(steps);
+
+        }
+        else if ( data[i][0] == data[i][0].toUpperCase() && isNaN(data[i][0]) && firstTime == true ){
+          tmp_step = data[i];
+          firstTime = false;
+        }
+        else{
+          explanation.push(data[i])
+        }
+      }
+    }
 
 
     _sendMessage() {
@@ -112,7 +117,9 @@ export default class ChatbotScreen extends Component {
             return response.json();
         })
         .then((data) =>{
+          this._parse_data(data);
           // this.state.messages.push({ owner: "MathU", text: "Got it. There are " + (data.length-2) + " steps. This is the first...\n" + data[this.state.currStep]});
+          this.state.messages.push({ owner: "MathU", text: this.state.currProbSteps });
 
           this.setState({
             messages: this.state.messages,
@@ -122,7 +129,7 @@ export default class ChatbotScreen extends Component {
           });
         })
         .then(function(){
-            console.log(this.state.text)
+            console.log("New Messages");
         });
       } else{
         var uri = "http://192.168.1.223:5000/chatbot_question/";

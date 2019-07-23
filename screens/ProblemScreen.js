@@ -71,13 +71,9 @@ export default class ProblemScreen extends Component {
         <View style = {{flex:1}}>
             <View style={{height:100, paddingBottom:10}}>
                 <View style={{flex:1, flexDirection:'row', paddingLeft:10, paddingRight: 10}}>
-                    {/* <TextInput
-                        style={styles.input}
-                        onChangeText={(text) => this.setState({text})}
-                        value={this.state.text}
-                    /> */}
                     <Input
                         placeholder='Enter A Problem'
+                        onChangeText={(text) => this.setState({text})}
                         leftIcon={{ type: 'font-awesome', name: 'calculator'}}
                     />
                 </View>  
