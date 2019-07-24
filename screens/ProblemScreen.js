@@ -31,7 +31,7 @@ export default class ProblemScreen extends Component {
   }
   
   solveButtonPress = () =>{
-      var uri = "http://192.168.1.223:5000/solve?msg=" + encodeURIComponent(this.state.text);
+      var uri = "http://192.168.3.38:5000/solve?msg=" + encodeURIComponent(this.state.text);
       fetch(uri, {
           method: "GET",
       })

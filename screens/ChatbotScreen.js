@@ -36,7 +36,7 @@ export default class ChatbotScreen extends Component {
     }
   
     static navigationOptions = {
-      title: 'MathU',
+      title: 'MathU',      
     };
   
     //fun keyboard stuff- we use these to get the end of the ScrollView to "follow" the top of the InputBar as the keyboard rises and falls
@@ -76,6 +76,10 @@ export default class ChatbotScreen extends Component {
       }.bind(this))
     }
   
+    isLetter(c){
+      return c.toUpperCase() != c.toLowerCase();
+    }
+
     _parse_data(data){
       var steps = [];
       var tmp_step = '';
@@ -83,16 +87,12 @@ export default class ChatbotScreen extends Component {
       var firstTime = true;
 
       for ( var i in data){
-        if( data[i][0] == data[i][0].toUpperCase() && isNaN(data[i][0]) && firstTime != true){
-          console.log(data[i]);
-          console.log("the explanation: " +explanation);
-
-          steps.push({ step : data[i], walkthrough: explanation});
+        if( data[i][0] == data[i][0].toUpperCase() && this.isLetter(data[i][0]) && firstTime != true){
+          var copy_explanations = explanation.slice();
+          steps.push({ step : data[i], walkthrough: copy_explanations});
           explanation.length = 0;
-          console.log(steps);
-
         }
-        else if ( data[i][0] == data[i][0].toUpperCase() && isNaN(data[i][0]) && firstTime == true ){
+        else if ( data[i][0] == data[i][0].toUpperCase() && this.isLetter(data[i][0]) && firstTime == true ){
           tmp_step = data[i];
           firstTime = false;
         }
@@ -100,56 +100,61 @@ export default class ChatbotScreen extends Component {
           explanation.push(data[i])
         }
       }
+      return steps;
+    }
+
+    _getAnswer = () => {
+      var uri = "http://192.168.3.38:5000/ask_mathu?msg=" + encodeURIComponent(this.state.inputBarText);
+      fetch(uri, {
+          method: "GET",
+      })
+      .then(function(response){
+
+          return response.json();
+      })
+      .then((data) =>{
+        this.state.messages.push({ owner: "MathU", text: "Got It!" });
+
+        this.setState({
+          messages: this.state.messages,
+          currStep: this.state.currStep + 1,
+          currProbSteps: this._parse_data(data),
+          inputBarText: ''
+        });
+      })
+      .then(function(){
+          console.log("New Messages");
+      });
+    }
+
+    _getQuestion = () => {
+      var uri = "http://192.168.3.38:5000/chatbot_question/";
+      fetch(uri, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          step: this.state.currStep,
+          userReponse: this.state.inputBarText
+        }),
+      })
+      .then(function(response){
+          return response.json();
+      })
+      .then((data) =>{
+          this.state.messages.push({owner: "MathU", text: data.question});
+      });
     }
 
 
     _sendMessage() {
       this.state.messages.push({owner: "Sean", text: this.state.inputBarText});
-  
       if(this.state.currProbSteps == 0){
-
-        var uri = "http://192.168.1.223:5000/ask_mathu?msg=" + encodeURIComponent(this.state.inputBarText);
-        fetch(uri, {
-            method: "GET",
-        })
-        .then(function(response){
-
-            return response.json();
-        })
-        .then((data) =>{
-          this._parse_data(data);
-          // this.state.messages.push({ owner: "MathU", text: "Got it. There are " + (data.length-2) + " steps. This is the first...\n" + data[this.state.currStep]});
-          this.state.messages.push({ owner: "MathU", text: this.state.currProbSteps });
-
-          this.setState({
-            messages: this.state.messages,
-            currStep: this.state.currStep + 1,
-            currProbSteps: data,
-            inputBarText: ''
-          });
-        })
-        .then(function(){
-            console.log("New Messages");
-        });
+        this._getAnswer();
       } else{
-        var uri = "http://192.168.1.223:5000/chatbot_question/";
-        fetch(uri, {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            step: this.state.currStep,
-            userReponse: this.state.inputBarText
-          }),
-        })
-        .then(function(response){
-            return response.json();
-        })
-        .then((data) =>{
-            this.state.messages.push({owner: "MathU", text: data.question});
-        });
+        this._getQuestion();
       }
     };
     
@@ -162,11 +167,25 @@ export default class ChatbotScreen extends Component {
 
 
     nextStepPress = () => {
-      this.state.messages.push({owner: "MathU", text: this.state.currProbSteps[this.state.currStep]})
+      console.log("Keys: " + this.state.currProbSteps.keys);
+      var text = this.state.currProbSteps[this.state.currStep-2].step;
+
+      this.state.messages.push({owner: "MathU", text: text});
       this.setState({
         messages: this.state.messages,
         currStep: this.state.currStep + 1,
         inputBarText: ''
+      });
+    }
+
+
+    walkThroughPress = () => {
+      console.log("Keys: " + this.state.currProbSteps.keys);
+      var walkthrough = this.state.currProbSteps[this.state.currStep-2].walkthrough;
+
+      this.state.messages.push({owner: "MathU", text: walkthrough});
+      this.setState({
+        messages: this.state.messages,
       });
     }
 
@@ -196,8 +215,13 @@ export default class ChatbotScreen extends Component {
             <Button style={styles.nextButton}
               title='Next Step'
               type="outline"
-              onPress={this.nextStepPress}
+              onPress={() => this.nextStepPress()}
               />
+            <Button style={styles.nextButton}
+              title='Explanation'
+              type="outline"
+              onPress={() => this.walkThroughPress()}
+            />
             <InputBar onSendPressed={() => this._sendMessage()} 
                       onSizeChange={() => this._onInputSizeChange()}
                       onChangeText={(text) => this._onChangeInputBarText(text)}
@@ -219,11 +243,15 @@ class MessageBubble extends Component {
       var bubbleStyles = this.props.owner === 'MathU' ? [styles.messageBubble, styles.messageBubbleLeft] : [styles.messageBubble, styles.messageBubbleRight];
   
       var bubbleTextStyle = this.props.owner === 'MathU' ? styles.messageBubbleTextLeft : styles.messageBubbleTextRight;
-  
+      var image_source = '../components/images/mathu.png'
+      var mathu_image = <Image source={require(image_source)} style={styles.mathuImage}/>
+
+
       return (
           <View style={{justifyContent: 'space-between', flexDirection: 'row'}}>
               {leftSpacer}
               <View style={bubbleStyles}>
+                 {this.props.owner === 'MathU' ? <Image source={require(image_source)} style={styles.mathuImage}/> : null}
                 <Text style={bubbleTextStyle}>
                   {this.props.text}
                 </Text>
@@ -290,8 +318,14 @@ const styles = StyleSheet.create({
        color: 'white'
     },
     mathuImage:{
-        width:40,
-        height:40,
+        width:25,
+        height:25,
+        padding: 5,
+        marginRight: 10
+    },
+    mathuImageHeader:{
+      width:40,
+      height:40,
     },
     mathuButton:{
         borderWidth:1,
